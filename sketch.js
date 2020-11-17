@@ -7,10 +7,12 @@ let zouten = ["Pb(NO<sub>3</sub>)<sub>2</sub>", "KI", "PbI<sub>2</sub>", "KNO<su
 "CdCl<sub>2</sub>", "CuCl<sub>2</sub>", "PbCl<sub>2</sub>", "PbCrO<sub>4</sub>", "K<sub>2</sub>CrO<sub>4</sub>", "Fe(OH)<sub>2</sub>", "Ag<sub>3</sub>PO<sub>4</sub>"];
 
 let SCHAAL = 1.3;
-let geklikt = false;
+let infoTekst = "Gebruik deze tool om uw kennis over de\noplosbaarheid van zouten te oefenen.\nU kan het aftellen voor automatisch naar de\nvolgende vraag te gaan, stoppen door op de\nblauwe balk te tikken.\nDoor op het vraagteken te tikken, krijgt u de\noplossing met uitleg te zien.\n\nSneltoetsen:\n   Pijltjestoetsen:\n      Rechts: volgende vraag\n      Boven: knop “oplosbaar”\n      Beneden: knop “niet oplosbaar”\n   Spatie: stop/hervat aftellen\n   i: toon/verberg dit infovenster\n   h: toon/verberg het uitlegvenster";
 
 let f = 0;
 let zout;
+let knop1H;
+let a;
 
 let oplosbaar = false;
 let stopaftellen = false;
@@ -18,127 +20,200 @@ let geraden = 0;
 let score = 0;
 let teller = 0;
 
+let viewInfo = false;
+
 function setup() {
   createCanvas(300*SCHAAL, 400*SCHAAL);
+  knop1H = height/2-20*SCHAAL;
+
   nieuwZout();
 }
 
 function draw() {
   background(255);
 
-  if(geraden > 0) fill(0, 255, 0);
-  else if(geraden < 0) fill(255, 0, 0);
-  if(geraden != 0){
+  //groene/rode kader
+  if (geraden > 0) fill(0, 255, 0);
+  else if (geraden < 0) fill(255, 0, 0);
+  if (geraden != 0) {
     noStroke();
     rect(0, 0, width, height);
     fill(255);
-    rect(20*SCHAAL, 20*SCHAAL, width-40*SCHAAL, height-60*SCHAAL);
+    rect(20*SCHAAL, 20*SCHAAL, width-40*SCHAAL, height-60*SCHAAL, 10*SCHAAL);
   }
 
+  //tekst + formule zout
   fill(0, 255);
   noStroke();
   textAlign(LEFT);
-  textSize(14*SCHAAL);
-  text(str(score) + "/" + str(teller), 10*SCHAAL, height-10*SCHAAL);
+  textSize(12*SCHAAL);
+  text(str(score) + "/" + str(teller), 12*SCHAAL, height-12*SCHAAL);
   textAlign(CENTER);
-  textSize(16*SCHAAL);
-  if(teller != 0) text(str(int(float(score)/float(teller)*100.0)) + "%", width/2, height-10*SCHAAL);
-  text("Onderstaand zout is:", width/2, 80*SCHAAL);
-  // image(formule, 100, 120);
-  text("in water.", width/2, height-60*SCHAAL);
-  //text(str(oplosbaar), width/2, height-20);
+  textSize(20*SCHAAL);
+  if (teller != 0) text(str(int(float(score)/float(teller)*100.0)) + "%", width/2, height-12*SCHAAL);
+  text("Is onderstaand zout\noplosbaar in water?", width/2, 50*SCHAAL);
 
-  let a;
-  if (mouseY > height/2 && mouseY < height/2+30*SCHAAL && geraden == 0) {
+  //knoppen
+  if (!viewInfo) {
+    //knop oplosbaar
+    if (mouseY > knop1H && mouseY < knop1H+30*SCHAAL && geraden == 0) {
+      a = 255;
+      if (mouseIsPressed) {
+        if (oplosbaar) {
+          geraden = 5*60*SCHAAL;
+          score++;
+          teller++;
+        } else {
+          geraden = -5*60*SCHAAL;
+          teller++;
+        }
+      }
+    } else if (geraden == 0) {
+      a = 150;
+    } else a = 255;
+    if (geraden == 0 || (geraden != 0 && oplosbaar)) {
+      textSize(20);
+      fill(0, 255, 0, a);
+      stroke(0, 100, 0, a);
+      rect(50*SCHAAL, knop1H, width-100*SCHAAL, 30*SCHAAL, 5*SCHAAL);
+      fill(0, 100, 0, a);
+      noStroke();
+      text("OPLOSBAAR", width/2, knop1H+23*SCHAAL);
+    }
+
+    //knop niet oplosbaar
+    if (mouseY > knop1H+50*SCHAAL && mouseY < knop1H+80*SCHAAL && geraden == 0) {
+      a = 255;
+      if (mouseIsPressed) {
+        if (!oplosbaar) {
+          geraden = 5*60*SCHAAL;
+          score++;
+          teller++;
+        } else {
+          geraden = -5*60*SCHAAL;
+          teller++;
+        }
+      }
+    } else if (geraden == 0) {
+      a = 150;
+    } else a = 255;
+    if (geraden == 0 || (geraden != 0 && !oplosbaar)) {
+      textSize(20);
+      fill(255, 0, 0, a);
+      stroke(100, 0, 0, a);
+      rect(50*SCHAAL, knop1H+50*SCHAAL, width-100*SCHAAL, 30*SCHAAL, 5*SCHAAL);
+      fill(100, 0, 0, a);
+      noStroke();
+      text("NIET OPLOSBAAR", width/2, knop1H+73*SCHAAL);
+    }
+
+    //knop volgende
+    if (geraden > 0) {
+      fill(0, 0, 255);
+      noStroke();
+      rect(0, 0, map(abs(geraden), 0, 5*60*SCHAAL, 0, width), 20*SCHAAL);
+    }
+    if (abs(geraden) > 0) {
+      if (mouseY > knop1H+100*SCHAAL && mouseY < knop1H+140*SCHAAL) {
+        a = 255;
+        if (mouseIsPressed) {
+          geraden = 4*geraden/abs(geraden);
+        }
+      } else {
+        a = 150;
+      }
+      textSize(24);
+      fill(50, 50, 255, a);
+      stroke(0, 0, 100, a);
+      rect(80*SCHAAL, knop1H+100*SCHAAL, width-160*SCHAAL, 40*SCHAAL, 5*SCHAAL);
+      fill(0, 0, 100, a);
+      noStroke();
+      text("VOLGENDE", width/2, knop1H+130*SCHAAL);
+    }
+  }
+
+  //knop info
+  textSize(14*SCHAAL);
+  if (mouseY > height-30*SCHAAL && mouseY < height-10*SCHAAL && mouseX > width-30*SCHAAL && mouseX < width-10*SCHAAL) {
     a = 255;
     if (mouseIsPressed) {
-      geklikt = true;
-      if (oplosbaar) {
-        geraden = 5*60*SCHAAL;
-        score++;
-        teller++;
-      } else {
-        geraden = -5*60*SCHAAL;
-        teller++;
-      }
+      viewInfo = true;
+      viewHulp = false;
+      if(geraden != 0) stopaftellen = true;
     }
-  } else if(geraden == 0){
+  } else {
     a = 150;
-  }else a = 255;
-  if (geraden == 0 || (geraden != 0 && oplosbaar)) {
-    textSize(20*SCHAAL);
-    fill(0, 255, 0, a);
-    stroke(0, 100, 0, a);
-    rect(50*SCHAAL, height/2, width-100*SCHAAL, 30*SCHAAL, 5*SCHAAL);
-    fill(0, 100, 0, a);
-    noStroke();
-    text("OPLOSBAAR", width/2, height/2+20*SCHAAL);
   }
+  fill(255, 200, 0, a);
+  stroke(136, 107, 0, a);
+  circle(width-20*SCHAAL, height-20*SCHAAL, 20*SCHAAL);
+  fill(136, 107, 0, a);
+  text("i", width-20*SCHAAL, height-16*SCHAAL);
 
-  if (mouseY > height/2+50*SCHAAL && mouseY < height/2+80*SCHAAL && geraden == 0) {
-    a = 255;
-    if (mouseIsPressed) {
-      geklikt = true;
-      if (!oplosbaar) {
-        geraden = 5*60*SCHAAL;
-        score++;
-        teller++;
-      } else {
-        geraden = -5*60*SCHAAL;
-        teller++;
+  //scherm info
+  if (viewInfo) {
+    document.getElementById("tekstZout").innerHTML = "";
+    textAlign(CENTER);
+    fill(255, 255, 120);
+    stroke(136, 107, 0);
+    rect(10*SCHAAL, 10*SCHAAL, width-20*SCHAAL, height-20*SCHAAL, 10*SCHAAL);
+    textSize(14*SCHAAL);
+    if (mouseY > 5*SCHAAL && mouseY < 25*SCHAAL && mouseX > 5*SCHAAL && mouseX < 25*SCHAAL) {
+      a = 255;
+      if (mouseIsPressed) {
+        viewInfo = false;
+        viewHulp = false;
       }
+    } else {
+      a = 150;
     }
-  } else if(geraden == 0){
-    a = 150;
-  }else a = 255;
-  if (geraden == 0 || (geraden != 0 && !oplosbaar)) {
+    circle(15*SCHAAL,15*SCHAAL, 20*SCHAAL);
+    fill(255, 200, 0, a);
+    stroke(136, 107, 0, a);
+    circle(15*SCHAAL, 15*SCHAAL, 20*SCHAAL);
+    fill(136, 107, 0, a);
+    text("X", 15*SCHAAL, 21*SCHAAL);
     textSize(20*SCHAAL);
-    fill(255, 0, 0, a);
-    stroke(100, 0, 0, a);
-    rect(50*SCHAAL, height/2+50*SCHAAL, width-100*SCHAAL, 30*SCHAAL, 5*SCHAAL);
-    fill(100, 0, 0, a);
     noStroke();
-    text("NIET OPLOSBAAR", width/2, height/2+70*SCHAAL);
+    fill(136, 107, 0);
+    text("Info", width/2, 36*SCHAAL);
+    textAlign(LEFT);
+    fill(0);
+    textSize(12*SCHAAL);
+    text(infoTekst, 20*SCHAAL, 60*SCHAAL);
+  } else {
+    document.getElementById('tekstZout').innerHTML = zout;
   }
 
-  if(geraden != 0){
-    fill(0, 0, 255);
-    noStroke();
-    rect(0, 0, map(abs(geraden), 0, 5*60*SCHAAL, 0, width), 20*SCHAAL);
+  //aftellen stoppen door op blauwe balk te klikke
+  if(mouseY < 20*SCHAAL && mouseIsPressed) stopaftellen = !stopaftellen;
 
-  }
-
-  if(abs(geraden) > 5*SCHAAL && !stopaftellen){
+  //aftellen
+  if (geraden > 5 && !stopaftellen) {
     geraden -= geraden/abs(geraden);
-  }else if(geraden != 0 && !stopaftellen){
+  } else if (geraden != 0 && abs(geraden) <= 5 && !stopaftellen) {
     geraden = 0;
     nieuwZout();
   }
 }
 
-// function mouseReleased() {
-//   geklikt = false;
-// }
-//
-// function mousePressed() {
-//   if(!geklikt) {
-//     if(abs(geraden) > 10*SCHAAL) geraden = 6*SCHAAL;
-//     geklikt = false;
-//   }
-// }
-
-function keyPressed(){
-  if(key == ' '){
+function keyPressed() {
+  if (keyCode == RIGHT_ARROW) {
+    if (abs(geraden) > 10) geraden = 6*geraden/abs(geraden);
+  } else if (keyCode == UP_ARROW) {
+    if (geraden == 0) geraden = 5*60*SCHAAL;
+  } else if (keyCode == DOWN_ARROW) {
+    if (geraden == 0) geraden = -5*60*SCHAAL;
+  } else if (key == ' ') {
     stopaftellen = !stopaftellen;
-  }else if(keyCode == RIGHT_ARROW){
-    if(abs(geraden) > 10*SCHAAL) geraden = 6*SCHAAL;
+  } else if (key == 'i') {
+    viewInfo = !viewInfo;
   }
 }
 
 function nieuwZout() {
   f = int(random(0, zouten.length));
   zout = zouten[f];
-  document.getElementById('tekstZout').innerHTML = zout;
   // formule = loadImage(LaTeXurl + zout);
   // formule.resize(width-200, 0);
   oplosbaar = testOplosbaarheid(zout);
@@ -172,4 +247,8 @@ function testOplosbaarheid(z) {
   //alle metaalhydroxiden (O) zijn niet oplosbaar:
   else if (z.indexOf("O") > -1) opl =  false;
   return opl;
+}
+
+function hulpTekst(z){
+  return "Zout: " + z;
 }
